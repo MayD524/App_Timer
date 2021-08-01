@@ -1,0 +1,26 @@
+{
+    "nt" : 
+        [
+            "System Idle Process",
+            "System",
+            "svchost.exe",
+            "Registry",
+            "smss.exe",
+            "csrss.exe",
+            "AMDRSServ.exe",
+            "services.exe",
+            "LsaIso.exe",
+            "lsass.exe",
+            "winlogon.exe",
+            "fontdrvhost.exe",
+            "dwm.exe",
+            "ShellExperienceHost.exe",
+            "vmms.exe",
+            "amdow.exe",
+            "RuntimeBroker.exe",
+            "amdfendrsr.exe",
+            "atiesrxx.exe"
+        ], 
+
+    "posix" : []
+}
