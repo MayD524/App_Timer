@@ -1,4 +1,4 @@
 {
     "time_between" : 1,
-    "log_update" : 5
+    "log_update" : 300
 }

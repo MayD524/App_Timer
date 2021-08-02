@@ -1,3 +1,2 @@
-
-python main.pyw
+py main.pyw
 pause

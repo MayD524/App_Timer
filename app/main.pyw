@@ -11,7 +11,7 @@ import time
 import UPL
 import os
 
-__version__ = "0.0.1"
+__version__ = "0.1.1"
 
 
 def get_procs() -> list:
@@ -58,13 +58,15 @@ def main(config:dict) -> None:
     ## main loop
     while True:
         ## get all processes every tick
-        processes = get_procs()  
+        start = time.time()
+        processes = get_procs()
+        added_time = round(abs(start-time.time()))  
         for app in processes:
             if app not in apps.keys():
-                apps[app] = 0
+                apps[app] = added_time
                 
             else:
-                apps[app] += config["time_between"]
+                apps[app] += config["time_between"] + added_time
         
         ## time shit
         if current_iter == config["log_update"]:
