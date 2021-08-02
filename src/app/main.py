@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
     Name: App Timer
     Authors: Cross, Sweden
@@ -51,12 +52,12 @@ def main(config:dict) -> None:
     
     """
     ## all apps
+    apps = UPL.Core.file_manager.getData_json("apps.json")
     current_iter = 0
     
     ## main loop
     while True:
         ## get all processes every tick
-        apps = UPL.Core.file_manager.getData_json("apps.json")
         processes = get_procs()  
         for app in processes:
             if app not in apps.keys():
@@ -70,7 +71,7 @@ def main(config:dict) -> None:
             current_iter = 0
             # update json
             UPL.Core.file_manager.write_json("apps.json", apps, 2)
-
+            apps = UPL.Core.file_manager.getData_json("apps.json")
         
         ## update ever second
         current_iter += config["time_between"]
