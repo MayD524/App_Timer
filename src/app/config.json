@@ -1,4 +1,7 @@
 {
-    "time_between" : 1,
-    "log_update" : 300
+  "log_update": 300,
+  "config_update": 600,
+  "first_boot": true,
+  "first_boot_Time": "",
+  "last_known_time": ""
 }
