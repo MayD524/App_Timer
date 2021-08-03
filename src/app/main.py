@@ -13,6 +13,11 @@ import os
 
 __version__ = "0.1.2"
 
+def get_seconds(current:list, app_time:list) -> int:
+    hours = int(current[0]) - int(app_time[0])
+    mins = (int(current[1]) - int(app_time[1])) + (hours * 60)
+    return (int(current[2]) - int(app_time[2])) + (mins * 60)
+
 class app_timer:
     def __init__(self, config:dict) -> None:
         self.config = config
@@ -20,13 +25,16 @@ class app_timer:
         self.apps = UPL.Core.file_manager.getData_json("apps.json")
         self.prev = ""
     
-    def get_time(self, pid:int, current:str, app_name:str) -> None:
+    def get_time(self, pid:int, current:str, app_name:str, first_boot:bool) -> None:
         current = current.split(":")
         if app_name not in self.reced_apps:
-            app_time = time.strftime("%H:%M:%S", time.localtime(psutil.Process(pid).create_time())).split(":")
-            hours = int(current[0]) - int(app_time[0])
-            mins = (int(current[1]) - int(app_time[1])) + (hours * 60)
-            secs = (int(current[2]) - int(app_time[2])) + (mins * 60)
+            if first_boot:   
+                app_time = time.strftime("%H:%M:%S", time.localtime(psutil.Process(pid).create_time())).split(":")
+                secs = get_seconds(current, app_time)
+            
+            else:
+                secs = get_seconds(current, self.prev.split(":"))    
+            
             if app_name not in self.apps.keys():
                 self.apps[app_name] = secs
             else:
@@ -35,21 +43,14 @@ class app_timer:
             return
         
         if self.prev == "":
-            app_time = time.strftime("%H:%M:%S", time.localtime(psutil.Process(pid))).split(":")
-            
-            hours = int(current[0]) - int(app_time[0])
-            mins = (int(current[1]) - int(app_time[1])) + (hours * 60)
-            secs = (int(current[2]) - int(app_time[2])) + (mins * 60)
+            app_time = time.strftime("%H:%M:%S", time.localtime(psutil.Process(pid).create_time())).split(":")
+            secs = get_seconds(current, app_time)
         
         else:
-            prev = self.prev.split(":")
-            hours = int(current[0]) - int(prev[0])
-            mins = (int(current[1]) - int(prev[1])) + (hours * 60)
-            secs = (int(current[2]) - int(prev[2])) + (mins * 60)
-            
+            secs = get_seconds(current, self.prev.split(":"))
         self.apps[app_name] += secs
-    
-    def get_procs(self) -> None:
+
+    def get_procs(self, first_boot:bool) -> None:
         ignore = UPL.Core.file_manager.getData_json("ignore.json")
         name = os.getlogin().lower()
         current = datetime.now().strftime("%H:%M:%S")
@@ -57,15 +58,28 @@ class app_timer:
         for proc in psutil.process_iter():
             try:
                 if name in proc.username().lower() and proc.name().lower().replace(".exe", '') not in ignore:
-                    self.get_time(proc.pid, current, proc.name().lower().replace(".exe", ''))
-            except Exception:
+                    self.get_time(proc.pid, current, proc.name().lower().replace(".exe", ''), first_boot)
+            except Exception as e:
+                #print(e)
                 pass
         
         self.prev = current
     
     def main(self) -> None:
         while True:
-            self.get_procs()
+            boot = True
+            if self.config["first_boot"] == False:
+                if self.config['first_boot_Time'] != datetime.now().strftime("%Y-%m-%d"):
+                    self.config["first_boot"] = True
+                else:
+                    boot = False
+            
+            if self.config["first_boot"]:
+                self.config['first_boot'] = False
+                self.config["first_boot_Time"] = datetime.now().strftime("%Y-%m-%d") 
+                UPL.Core.file_manager.write_json("config.json", self.config, 2)
+            
+            self.get_procs(boot)
             UPL.Core.file_manager.write_json("apps.json", self.apps, 2)
             time.sleep(self.config["log_update"])
             
