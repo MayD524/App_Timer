@@ -5,83 +5,76 @@
     Date: 8/1/2021
     Description: Gets a counter for all currently running apps
 """
-
+from datetime import datetime
 import psutil
 import time
 import UPL
 import os
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
-
-def get_procs() -> list:
-    """
-        Gets all currently running processes
+class app_timer:
+    def __init__(self, config:dict) -> None:
+        self.config = config
+        self.reced_apps = []
+        self.apps = UPL.Core.file_manager.getData_json("apps.json")
+        self.prev = ""
     
-        @params:
-            None
-            
-        @return:
-            procs  (list) : all currently running processes
-    """
-    tmp =[process for process in psutil.process_iter()]
-    procs= []
-    name = os.getlogin().lower()
-    
-    for proc in tmp:
-        try:
-            if name in proc.username().lower():
-                procs.append(proc.name().lower().replace(".exe", ''))
-        
-        except Exception:
-            pass
-        
-    ignore = UPL.Core.file_manager.getData_json("ignore.json")
-    procs = list(set([i for i in procs if i not in ignore[os.name]]))
-
-    return procs
-
-def main(config:dict) -> None:
-    """
-        the main function
-        @params:
-            config (dict) : all config options
-            
-        @returns:
-            None
-    
-    """
-    ## all apps
-    apps = UPL.Core.file_manager.getData_json("apps.json")
-    current_iter = 0
-    
-    ## main loop
-    while True:
-        ## get all processes every tick
-        start = time.time()
-        processes = get_procs()
-        added_time = round(abs(start-time.time()))  
-        for app in processes:
-            if app not in apps.keys():
-                apps[app] = added_time
-                
+    def get_time(self, pid:int, current:str, app_name:str) -> None:
+        current = current.split(":")
+        if app_name not in self.reced_apps:
+            app_time = time.strftime("%H:%M:%S", time.localtime(psutil.Process(pid).create_time())).split(":")
+            hours = int(current[0]) - int(app_time[0])
+            mins = (int(current[1]) - int(app_time[1])) + (hours * 60)
+            secs = (int(current[2]) - int(app_time[2])) + (mins * 60)
+            if app_name not in self.apps.keys():
+                self.apps[app_name] = secs
             else:
-                apps[app] += config["time_between"] + added_time
+                self.apps[app_name] += secs
+            self.reced_apps.append(app_name)
+            return
         
-        ## time shit
-        if current_iter == config["log_update"]:
-            current_iter = 0
-            # update json
-            UPL.Core.file_manager.write_json("apps.json", apps, 2)
-            apps = UPL.Core.file_manager.getData_json("apps.json")
+        if self.prev == "":
+            app_time = time.strftime("%H:%M:%S", time.localtime(psutil.Process(pid))).split(":")
+            
+            hours = int(current[0]) - int(app_time[0])
+            mins = (int(current[1]) - int(app_time[1])) + (hours * 60)
+            secs = (int(current[2]) - int(app_time[2])) + (mins * 60)
         
-        ## update ever second
-        current_iter += config["time_between"]
-        time.sleep(config["time_between"])
+        else:
+            prev = self.prev.split(":")
+            hours = int(current[0]) - int(prev[0])
+            mins = (int(current[1]) - int(prev[1])) + (hours * 60)
+            secs = (int(current[2]) - int(prev[2])) + (mins * 60)
+            
+        self.apps[app_name] += secs
+    
+    def get_procs(self) -> None:
+        ignore = UPL.Core.file_manager.getData_json("ignore.json")
+        name = os.getlogin().lower()
+        current = datetime.now().strftime("%H:%M:%S")
+        self.apps = UPL.Core.file_manager.getData_json("apps.json")
+        for proc in psutil.process_iter():
+            try:
+                if name in proc.username().lower() and proc.name().lower().replace(".exe", '') not in ignore:
+                    self.get_time(proc.pid, current, proc.name().lower().replace(".exe", ''))
+            except Exception:
+                pass
+        
+        self.prev = current
+    
+    def main(self) -> None:
+        while True:
+            self.get_procs()
+            UPL.Core.file_manager.write_json("apps.json", self.apps, 2)
+            time.sleep(self.config["log_update"])
+            
 
 if __name__ == "__main__":
-    main(UPL.Core.file_manager.getData_json("config.json"))
-    print(chr(69)) # if you see capital E you are fucked
+    #main(UPL.Core.file_manager.getData_json("config.json"))
+    app_main = app_timer(UPL.Core.file_manager.getData_json('config.json'))
+    app_main.main()
+    print(chr(69)) ## debug E
     
 else:
-    raise ImportError("This cannot be imported")
+    raise ImportError("This cannot be improted")
