@@ -234,7 +234,11 @@ public class Gui implements ActionListener, ChangeListener {
 			
 			if(isNumeric(prefix[0])) {
 			 	prefix = m.readMacros(path, prefix[1],Integer.parseInt(prefix[0]));
-			}
+				
+			}else if(prefix[0].equalsIgnoreCase("macro")) {
+				 m.createMacro(path, prefix[1]);
+				 
+			} 
 			if(!searchField.isEditable())
 				System.out.println((char)69);
 			else {
@@ -251,7 +255,10 @@ public class Gui implements ActionListener, ChangeListener {
 					searchResults.append("toHour:[name] \n");
 					searchResults.append("greater:[timeInSec] \n");
 					searchResults.append("less:[timeInSec] \n");
+					searchResults.append("equT:[timeInSec] \n");
 					searchResults.append("to use macros do [lineNr]:[procName] \n");
+					searchResults.append("to add a macro do macro:[cmd] \n");
+					
 				} 
 				else {
 					//This is important for getting the prefix and what to search for
