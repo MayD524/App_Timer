@@ -46,44 +46,76 @@ class app_timer_cli:
             time.sleep(self.config["log_update"] + 1)
             
     def display_help(self) -> None:
-        print("equ:[name]\nends:[text]\nstarts:[text]\ncontains:[text]\nmacro:[macro name]\n:all -> displays all\n:q -> Quit")
+        print("equ:[name]\nends:[text]\nstarts:[text]\ncontains:[text]\nmacro:[macro name]\nequt:[time (seconds)]\nless:[time]\ngreat:[time]\n:all -> displays all\n:h -> help\n:c -> Clear screen\n:q -> Quit")
 
+    def run_cmd(self, text:str, macro=False) -> None:
+        apps = UPL.Core.file_manager.getData_json("apps.json")
+        if text == ":q":
+            sys.exit(0)
+            
+        elif text == ":h":
+            self.display_help()
+            return
+        
+        ## clear screen
+        elif text == ":c":
+            UPL.Core.clear()
+            return 
+        
+        elif text == ":all":
+            print("App name : App time")    
+            for app in apps.keys():
+                print(f"{app} : {self.timeFormat(apps[app])}")
+            return
+        try:
+            cmd, txt = text.split(":")
+            cmd = cmd.lower()
+        
+        except Exception as e:
+            print("There was an issue with that command")
+            print(e)
+            print(chr(69))
+            return # just to not cause issues later
+        
+        if cmd == 'equ':
+            apps = {x:i for x, i in apps.items() if x == txt}
+        
+        elif cmd == 'starts':
+            apps = {x:i for x, i in apps.items() if x.startswith(txt)}
+        
+        elif cmd == 'ends':
+            apps = {x:i for x, i in apps.items() if x.endswith(txt)}
+            
+        elif cmd == 'contains':
+            apps = {x:i for x, i in apps.items() if txt in x}
+            
+        elif cmd == "equt":
+            apps = {x:i for x, i in apps.items() if i == int(txt)}
+        
+        elif cmd == "less":
+            apps = {x:i for x, i in apps.items() if i <= int(txt)}
+        
+        elif cmd == "great":
+            apps = {x:i for x, i in apps.items() if i >= int(txt)}
+            
+        elif cmd == "macro":
+            apps = self.run_macro(txt)
+            
+        print("App name : App time")    
+        for app in apps.keys():
+            print(f"{app} : {self.timeFormat(apps[app])}")
+            
+            
+    
+    def run_macro(self, macro_name:str) -> None:
+        raise NotImplementedError("Macros aren't implimented yet")    
     
     def userInteractable(self) -> None:
+        self.display_help()
         while True:
-            inp = UPL.Core.ainput("> ", str)
+            inp = UPL.Core.ainput("> ", str) 
+            self.run_cmd(inp)
             
-            if inp == ":help": 
-                self.display_help() 
-                continue
-            
-            if inp == ":q":
-                sys.exit(0)
-            
-            cmd, text = inp.split(':',1)
-            
-            if cmd == "equ":
-                pass
-            
-            elif cmd == "ends":
-                pass
-            
-            elif cmd == "starts":
-                pass
-            
-            elif cmd == "contains":
-                pass
-            
-            elif cmd == "macro":
-                pass
-            
-            
-            pass
-            
-            
-    
-        
-
 def start():
     print("Modes:\n[0] Interactable [1] Non-Interactable")
     mode = UPL.Core.ainput("Mode> ", int)
