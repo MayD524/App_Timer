@@ -15,11 +15,16 @@ Ever want to see how long you spend on your favorite apps? Well now you can!
     Windows Users:
         run the run.bat file
 
-    Linux Users:
+    Linux Users: (not currently tested)
         run the run.sh file
 
     Run on start will be coming later
-    
+
+### Notes:
+    If you get a 'E' or as we call it (char) 69
+    an error has occured, we will be working out
+    bugs and adding a crash log soon, (working on it)
+    Any questions please contact either of us by discord.
 
 
 ### Contact:
