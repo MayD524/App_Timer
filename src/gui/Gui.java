@@ -7,8 +7,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Set;
 
 import javax.swing.JButton;
@@ -26,7 +26,7 @@ import org.json.JSONObject;
 
 public class Gui implements ActionListener, ChangeListener {
 	JFrame frame = new JFrame("App Timer");
-
+	private static DecimalFormat df2 = new DecimalFormat("#.##");
 	
 	//List of results
 	ArrayList<String> results;
@@ -162,7 +162,44 @@ public class Gui implements ActionListener, ChangeListener {
 					if(t.equals(searchFor)) {
 						results.add(t+": "+o.getInt(t)+" sec");
 					}
+				}else if(prefix.startsWith("toMin")) {
+					if(t.equals(searchFor)) {
+						double timeInMin = (double) o.getInt(t) / 60;
+						
+						results.add(t+": "+df2.format(timeInMin)+" min");
+					}
+				}else if(prefix.startsWith("toHour")) {
+					if(t.equals(searchFor)) {
+						double timeInMin = (double) o.getInt(t) / 60;
+						double timeInH = timeInMin / 60;
+						results.add(t+": "+df2.format(timeInH)+" h");
+					}
+				}else if(prefix.startsWith("greater")) {
+					for(String ti : te) {
+						int time = o.getInt(t);
+						//Append it to the output
+						if(time > Integer.parseInt(searchFor))
+							searchResults.append(ti+" : "+time+" sec \n");
+						
+					}
+				}else if(prefix.startsWith("less")) {
+					for(String ti : te) {
+						int time = o.getInt(t);
+						//Append it to the output
+						if(time < Integer.parseInt(searchFor))
+							searchResults.append(ti+" : "+time+" sec \n");
+						
+					}
+				}else if(prefix.startsWith("equT")) {
+					for(String ti : te) {
+						int time = o.getInt(t);
+						//Append it to the output
+						if(time == Integer.parseInt(searchFor))
+							searchResults.append(ti+" : "+time+" sec \n");
+						
+					}
 				}
+				
 				
 			}
 			
@@ -171,6 +208,18 @@ public class Gui implements ActionListener, ChangeListener {
 			}
 		return results;
 	}
+	public static boolean isNumeric(String strNum) {
+	    if (strNum == null) {
+	        return false;
+	    }
+	    try {
+	        @SuppressWarnings("unused")
+			int d = Integer.parseInt(strNum);
+	    } catch (NumberFormatException nfe) {
+	        return false;
+	    }
+	    return true;
+	}
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == refreshBtn) {
@@ -178,6 +227,14 @@ public class Gui implements ActionListener, ChangeListener {
 			readJSON();
 		}else if(e.getSource() == searchBtn) {
 			//Checks if the search field is blank
+			Macros m = new Macros();
+			String path = System.getProperty("user.dir")+"\\macros.txt";
+			
+			String[] prefix = searchField.getText().split(":");
+			
+			if(isNumeric(prefix[0])) {
+			 	prefix = m.readMacros(path, prefix[1],Integer.parseInt(prefix[0]));
+			}
 			if(!searchField.isEditable())
 				System.out.println((char)69);
 			else {
@@ -190,11 +247,15 @@ public class Gui implements ActionListener, ChangeListener {
 					searchResults.append("starts:[name] \n");
 					searchResults.append("ends:[name] \n");
 					searchResults.append("contains:[name] \n");
+					searchResults.append("toMin:[name] \n");
+					searchResults.append("toHour:[name] \n");
+					searchResults.append("greater:[timeInSec] \n");
+					searchResults.append("less:[timeInSec] \n");
+					searchResults.append("to use macros do [lineNr]:[procName] \n");
 				} 
 				else {
 					//This is important for getting the prefix and what to search for
-					String[] prefix = searchField.getText().split(":");
-					System.out.println(prefix[0]+" "+prefix[1]);
+					//System.out.println(prefix[0]+" "+prefix[1]);
 					results = searchResList(prefix[0],prefix[1]);
 					//If the results are not empty the loops through the list and appends it to the search results area
 					if(!results.isEmpty()) {
@@ -203,6 +264,7 @@ public class Gui implements ActionListener, ChangeListener {
 					}
 				}
 			}
+			
 		}	
 		
 	}
