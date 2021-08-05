@@ -18,7 +18,13 @@ def get_seconds(current:list, app_time:list) -> int:
     ## convert to seconds
     hours = int(current[0]) - int(app_time[0])
     mins = (int(current[1]) - int(app_time[1])) + (hours * 60)
-    return (int(current[2]) - int(app_time[2])) + (mins * 60)
+    secs = (int(current[2]) - int(app_time[2])) + (mins * 60)
+
+    if secs > 0:
+        return secs
+    
+    else:
+        return secs + 86400
 
 class app_timer:
     def __init__(self, config:dict) -> None:
